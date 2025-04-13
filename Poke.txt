@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon Duo Viewer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      padding: 1rem;
+      background-color: #ffffff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .streams {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .stream {
+      flex: 1 1 45%;
+      min-width: 300px;
+      aspect-ratio: 16 / 9;
+      background-color: black;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .teams {
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
+      padding: 2rem;
+    }
+
+    .team {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .team img {
+      width: 48px;
+      height: 48px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pokémon Duo Viewer</h1>
+    <p>Zwei Streams nebeneinander - perfekt für gemeinsame Runs</p>
+  </header>
+
+  <section class="streams">
+    <div class="stream">
+      <iframe src="https://vdo.ninja/?view=PLAYER1_ID"></iframe>
+    </div>
+    <div class="stream">
+      <iframe src="https://vdo.ninja/?view=PLAYER2_ID"></iframe>
+    </div>
+  </section>
+
+  <section class="teams">
+    <div class="team">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="Mewtu" />
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/59.png" alt="Arkani" />
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/470.png" alt="Folipurba" />
+    </div>
+    <div class="team">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/186.png" alt="Quaxo" />
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/12.png" alt="Smettbo" />
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/162.png" alt="Wiesenior" />
+    </div>
+  </section>
+</body>
+</html>
