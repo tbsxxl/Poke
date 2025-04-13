@@ -6,6 +6,9 @@
   <title>Pokémon Duo Viewer</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -133,6 +136,13 @@
     .fusion-viewer button:hover {
       background-color: #d32f2f;
     }
+    .fusion-embed {
+      margin-top: 2rem;
+      height: 700px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -158,6 +168,7 @@
     <input type="text" id="poke2" placeholder="Pokémon 2" />
     <br>
     <button onclick="showFusion()">Fusion anzeigen 🔍</button>
+    <iframe id="fusionFrame" class="fusion-embed" style="display:none;"></iframe>
   </section>
 
   <script>
@@ -173,17 +184,36 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const idMap = { mewtu: 150, glurak: 6, pikachu: 25, butterfree: 12, nidorino: 33 };
-    const getId = v => {
-      if (/^\d+$/.test(v)) return parseInt(v);
-      v = v.toLowerCase();
-      return idMap[v] || Object.entries(englishNames).find(([id, name]) => name.toLowerCase() === v)?.[0];
-    };
-
     let englishNames = {};
+    let nameList = [];
     fetch("https://raw.githubusercontent.com/Aegide/custom-fusion-sprites/main/pokemon_names.json")
       .then(res => res.json())
-      .then(data => { englishNames = data; });
+      .then(data => {
+        englishNames = data;
+        nameList = Object.values(data);
+        $("#poke1, #poke2").autocomplete({ source: nameList });
+      });
+
+    const idMap = {
+      mewtu: 150, glurak: 6, bisasam: 1, schiggy: 7, taubsi: 16,
+      pikachu: 25, raupy: 10, safcon: 11, smogon: 109
+    };
+
+    const getId = v => {
+      if (!v) return null;
+      if (/^\d+$/.test(v)) return parseInt(v);
+      v = v.toLowerCase();
+      if (idMap[v]) return idMap[v];
+      return parseInt(Object.entries(englishNames).find(([id, name]) => name.toLowerCase() === v)?.[0]);
+    };
+
+    function updateNames(id1, id2, label) {
+      id1 = parseInt(id1);
+      id2 = parseInt(id2);
+      const name1 = englishNames[id1] || `#${id1}`;
+      const name2 = englishNames[id2] || `#${id2}`;
+      label.textContent = `${name1}/${name2}`;
+    }
 
     function createFusionSlot(teamId, slotIndex) {
       const container = document.createElement("div");
@@ -206,6 +236,11 @@
           img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
           db.ref(teamPath).set({ id1, id2 });
           updateNames(id1, id2, nameLabel);
+          if (teamId === "team1" && slotIndex === 0) {
+            document.getElementById("poke1").value = englishNames[id1];
+            document.getElementById("poke2").value = englishNames[id2];
+            showFusion();
+          }
         } else {
           img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
           nameLabel.textContent = "-";
@@ -229,28 +264,30 @@
       document.getElementById(teamId).appendChild(container);
     }
 
-    function updateNames(id1, id2, label) {
-      const name1 = englishNames[id1] || `#${id1}`;
-      const name2 = englishNames[id2] || `#${id2}`;
-      label.textContent = `${name1}/${name2}`;
-    }
-
     for (let i = 0; i < 6; i++) {
       createFusionSlot("team1", i);
       createFusionSlot("team2", i);
     }
 
     function showFusion() {
+      if (Object.keys(englishNames).length === 0) {
+        alert("Pokémon-Daten werden noch geladen. Bitte warte kurz.");
+        return;
+      }
+
       const poke1 = document.getElementById("poke1").value.trim();
       const poke2 = document.getElementById("poke2").value.trim();
       const id1 = getId(poke1);
       const id2 = getId(poke2);
+
       if (!id1 || !id2) {
         alert("Pokémon nicht gefunden.");
         return;
       }
-      const detailUrl = `https://infinitefusiondex.com/details/${id1}.${id2}`;
-      window.open(detailUrl, "_blank");
+
+      const frame = document.getElementById("fusionFrame");
+      frame.src = `https://infinitefusion.online/?firstpoke=${englishNames[id1]}&secondpoke=${englishNames[id2]}`;
+      frame.style.display = "block";
     }
   </script>
 </body>
