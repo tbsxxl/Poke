@@ -96,4 +96,154 @@
       background-color: #000;
       border-radius: 4px;
     }
-    .fusion-
+    .fusion-slot .name {
+      font-size: 0.7rem;
+      text-align: center;
+      color: #ccc;
+    }
+    .fusion-viewer {
+      margin: 3rem auto;
+      max-width: 900px;
+      background-color: #1e1e1e;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+    .fusion-viewer input {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #2a2a2a;
+      color: white;
+    }
+    .fusion-result iframe {
+      margin-top: 2rem;
+      width: 100%;
+      height: 600px;
+      border-radius: 8px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pokémon Duo Viewer</h1>
+    <p>Zwei Streams nebeneinander - perfekt für gemeinsame Runs</p>
+  </header>
+  <section class="streams">
+    <div class="stream">
+      <iframe src="https://vdo.ninja/?view=PLAYER1_ID"></iframe>
+    </div>
+    <div class="stream">
+      <iframe src="https://vdo.ninja/?view=PLAYER2_ID"></iframe>
+    </div>
+  </section>
+  <section class="teams">
+    <div class="team" id="team1"></div>
+    <div class="team" id="team2"></div>
+  </section>
+  <section class="fusion-viewer">
+    <h2>Fusion Viewer</h2>
+    <input type="text" id="poke1" placeholder="Pokémon 1" />
+    <input type="text" id="poke2" placeholder="Pokémon 2" />
+    <button onclick="showFusion()">Fusion anzeigen</button>
+    <div class="fusion-result" id="fusionResult"></div>
+  </section>
+
+  <script>
+    // Firebase Config (ersetze ggf. durch dein eigenes Projekt)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCtRdemoDemoDemoDemoDemo",
+      authDomain: "fusion-app.firebaseapp.com",
+      databaseURL: "https://fusion-app-default-rtdb.firebaseio.com",
+      projectId: "fusion-app",
+      storageBucket: "fusion-app.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdefghij"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function createFusionSlot(teamId, slotIndex) {
+      const container = document.createElement("div");
+      container.className = "fusion-slot";
+
+      const input1 = document.createElement("input");
+      input1.placeholder = "ID1";
+
+      const input2 = document.createElement("input");
+      input2.placeholder = "ID2";
+
+      const nameLabel = document.createElement("div");
+      nameLabel.className = "name";
+      nameLabel.textContent = "-";
+
+      const img = document.createElement("img");
+      img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
+
+      const teamPath = `teams/${teamId}/slot${slotIndex}`;
+
+      function updateImageAndSync() {
+        const id1 = input1.value;
+        const id2 = input2.value;
+        if (id1 && id2) {
+          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
+          db.ref(teamPath).set({ id1, id2 });
+        } else {
+          img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
+        }
+        fetchName(id1, id2, nameLabel);
+      }
+
+      input1.addEventListener("input", updateImageAndSync);
+      input2.addEventListener("input", updateImageAndSync);
+
+      db.ref(teamPath).on("value", (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          input1.value = data.id1;
+          input2.value = data.id2;
+          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${data.id1}.${data.id2}.png`;
+          fetchName(data.id1, data.id2, nameLabel);
+        }
+      });
+
+      container.append(input1, input2, img, nameLabel);
+      document.getElementById(teamId).appendChild(container);
+    }
+
+    function fetchName(id1, id2, label) {
+      fetch(`https://raw.githubusercontent.com/Aegide/custom-fusion-sprites/main/pokemon_names.json`)
+        .then(res => res.json())
+        .then(names => {
+          const name1 = names[id1] || `#${id1}`;
+          const name2 = names[id2] || `#${id2}`;
+          label.textContent = `${name1}/${name2}`;
+        })
+        .catch(() => label.textContent = `${id1}/${id2}`);
+    }
+
+    for (let i = 0; i < 6; i++) {
+      createFusionSlot("team1", i);
+      createFusionSlot("team2", i);
+    }
+
+    function showFusion() {
+      const poke1 = document.getElementById("poke1").value.trim().toLowerCase();
+      const poke2 = document.getElementById("poke2").value.trim().toLowerCase();
+      const idMap = { mewtu: 150, glurak: 6, pikachu: 25, butterfree: 12, nidorino: 33 };
+      const getId = v => /^\d+$/.test(v) ? parseInt(v) : idMap[v];
+      const id1 = getId(poke1);
+      const id2 = getId(poke2);
+      if (!id1 || !id2) {
+        document.getElementById("fusionResult").textContent = "Pokémon nicht gefunden.";
+        return;
+      }
+      const detailUrl = `https://infinitefusiondex.com/details/${id1}.${id2}`;
+      document.getElementById("fusionResult").innerHTML = `<iframe src="${detailUrl}" loading="lazy"></iframe>`;
+    }
+  </script>
+</body>
+</html>
