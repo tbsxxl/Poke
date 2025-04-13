@@ -55,7 +55,6 @@
     }
     .team {
       display: flex;
-      flex-direction: row;
       flex-wrap: wrap;
       gap: 1rem;
       justify-content: center;
@@ -68,29 +67,8 @@
       border: 2px solid #ef5350;
     }
     .fusion-slot {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
-      background-color: #1c1c1c;
-      padding: 0.5rem;
-      border-radius: 8px;
-      border: 2px solid #3c3c3c;
-      box-shadow: inset 0 0 5px #000;
-      flex: 1 1 calc(16.66% - 1rem);
-      max-width: 90px;
-    }
-    .fusion-slot input {
-      width: 50px;
+      width: 72px;
       text-align: center;
-      padding: 0.3rem;
-      border: none;
-      border-radius: 4px;
-      background-color: #2f2f2f;
-      color: #fff;
-    }
-    .fusion-slot input::placeholder {
-      color: #777;
     }
     .fusion-slot img {
       width: 72px;
@@ -100,9 +78,8 @@
       border-radius: 4px;
     }
     .fusion-slot .name {
-      font-size: 0.7rem;
-      text-align: center;
-      color: #ccc;
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
     }
     .fusion-viewer {
       margin: 3rem auto;
@@ -131,26 +108,9 @@
       background-color: #ef5350;
       color: white;
       cursor: pointer;
-      transition: background-color 0.3s ease;
     }
     .fusion-viewer button:hover {
       background-color: #d32f2f;
-    }
-    .fusion-embed {
-      margin-top: 2rem;
-      height: 700px;
-      width: 100%;
-      border: none;
-      border-radius: 8px;
-    }
-    .stats-box {
-      color: #fff;
-      margin-top: 1.5rem;
-      font-size: 1rem;
-      text-align: left;
-      padding: 1rem;
-      background: #2c2c2c;
-      border-radius: 10px;
     }
   </style>
 </head>
@@ -162,14 +122,12 @@
   <section class="streams">
     <div class="stream">
       <iframe src="https://vdo.ninja/?view=PLAYER1_ID"></iframe>
+      <div class="team" id="team1"></div>
     </div>
     <div class="stream">
       <iframe src="https://vdo.ninja/?view=PLAYER2_ID"></iframe>
+      <div class="team" id="team2"></div>
     </div>
-  </section>
-  <section class="teams">
-    <div class="team" id="team1"></div>
-    <div class="team" id="team2"></div>
   </section>
   <section class="fusion-viewer">
     <h2>Fusion Viewer</h2>
@@ -177,92 +135,54 @@
     <input type="text" id="poke2" placeholder="Pokémon 2" />
     <br>
     <button onclick="showFusion()">Fusion anzeigen 🔍</button>
-    <iframe id="fusionFrame" class="fusion-embed" style="display:none;"></iframe>
-    <div id="stats" class="stats-box"></div>
   </section>
-
-  <audio id="soundEffect" src="https://vgmsite.com/soundtracks/pokemon-gameboy-sound-effects/vuzlwnnv/001%20-%20Caught%20Pokemon.mp3"></audio>
-
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCtRdemoDemoDemoDemoDemo",
-      authDomain: "fusion-app.firebaseapp.com",
-      databaseURL: "https://fusion-app-default-rtdb.firebaseio.com",
-      projectId: "fusion-app",
-      storageBucket: "fusion-app.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:abcdefghij"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let englishNames = {};
-    let nameList = [];
-    let dataLoaded = false;
-
-    fetch("https://raw.githubusercontent.com/Aegide/custom-fusion-sprites/main/pokemon_names.json")
-      .then(res => res.json())
-      .then(data => {
-        englishNames = data;
-        nameList = Object.values(data);
-        dataLoaded = true;
-        $("#poke1, #poke2").autocomplete({ source: nameList });
-        document.querySelectorAll(".fusion-slot input").forEach(input => {
-          $(input).autocomplete({ source: nameList });
-        });
-      });
-
     const idMap = {
       mewtu: 150, glurak: 6, bisasam: 1, schiggy: 7, taubsi: 16,
-      pikachu: 25, raupy: 10, safcon: 11, smogon: 109
+      pikachu: 25, raupy: 10, safcon: 11, smogon: 109,
+      wartortle: 8, hunduster: 228
     };
-
-    const getId = v => {
-      if (!v) return null;
-      if (/^\d+$/.test(v)) return parseInt(v);
-      v = v.toLowerCase();
-      if (idMap[v]) return idMap[v];
-      return parseInt(Object.entries(englishNames).find(([id, name]) => name.toLowerCase() === v)?.[0]);
+    const englishNames = {
+      1: "Bulbasaur", 6: "Charizard", 7: "Squirtle", 8: "Wartortle",
+      10: "Caterpie", 11: "Metapod", 16: "Pidgey", 25: "Pikachu",
+      109: "Koffing", 150: "Mewtwo", 228: "Houndour"
     };
-
-    function updateNames(id1, id2, label) {
-      id1 = parseInt(id1);
-      id2 = parseInt(id2);
-      const name1 = englishNames[id1] || `#${id1}`;
-      const name2 = englishNames[id2] || `#${id2}`;
-      label.textContent = `${name1}/${name2}`;
+    function getId(name) {
+      name = name.toLowerCase();
+      return idMap[name] || null;
     }
-
     function showFusion() {
-      if (!dataLoaded) return;
-
-      const poke1 = document.getElementById("poke1").value.trim();
-      const poke2 = document.getElementById("poke2").value.trim();
-      const id1 = getId(poke1);
-      const id2 = getId(poke2);
-
-      if (!id1 || !id2) {
-        alert("Pokémon nicht gefunden.");
-        return;
-      }
-
-      document.getElementById("fusionFrame").src = `https://infinitefusion.online/?firstpoke=${englishNames[id1]}&secondpoke=${englishNames[id2]}`;
-      document.getElementById("fusionFrame").style.display = "block";
-      document.getElementById("soundEffect").play();
-
-      fetch(`https://infinitefusion.io/api/fusion/${id1}/${id2}`)
-        .then(r => r.json())
-        .then(d => {
-          document.getElementById("stats").innerHTML = `
-            <strong>Stats:</strong><br>
-            HP: ${d.stats.hp}, ATK: ${d.stats.atk}, DEF: ${d.stats.def}, SP.ATK: ${d.stats.spatk}, SP.DEF: ${d.stats.spdef}, SPEED: ${d.stats.speed}<br>
-            <strong>Abilities:</strong> ${d.abilities?.join(", ") || "-"}<br>
-            <strong>Weaknesses:</strong> ${d.weaknesses?.join(", ") || "-"}
-          `;
-        }).catch(() => {
-          document.getElementById("stats").innerHTML = "⚠️ Keine Daten verfügbar.";
-        });
+      const p1 = document.getElementById("poke1").value;
+      const p2 = document.getElementById("poke2").value;
+      const id1 = getId(p1);
+      const id2 = getId(p2);
+      if (!id1 || !id2) return alert("Ungültiger Pokémon-Name.");
+      const dexUrl = `https://infinitefusiondex.com/details/${id1}.${id2}`;
+      window.open(dexUrl, '_blank');
     }
+    function renderTeams() {
+      const teams = [
+        [150, 226, 59, 470, 149, 110],
+        [25, 2, 12, 75, 10, 11]
+      ];
+      teams.forEach((team, idx) => {
+        const el = document.getElementById(`team${idx + 1}`);
+        el.innerHTML = '';
+        team.forEach(id => {
+          const slot = document.createElement('div');
+          slot.className = 'fusion-slot';
+          const img = document.createElement('img');
+          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/official/${id}.png`;
+          const name = document.createElement('div');
+          name.className = 'name';
+          name.textContent = englishNames[id] || `#${id}`;
+          slot.appendChild(img);
+          slot.appendChild(name);
+          el.appendChild(slot);
+        });
+      });
+    }
+    renderTeams();
   </script>
 </body>
 </html>
