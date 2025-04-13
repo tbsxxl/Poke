@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pokémon Duo Viewer</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
     body {
       margin: 0;
@@ -12,7 +14,6 @@
       background-color: #121212;
       color: #ffffff;
     }
-
     header {
       text-align: center;
       padding: 1rem;
@@ -20,7 +21,6 @@
       color: #fff;
       box-shadow: 0 2px 5px rgba(0,0,0,0.4);
     }
-
     .streams {
       display: flex;
       justify-content: center;
@@ -28,7 +28,6 @@
       padding: 1rem;
       flex-wrap: wrap;
     }
-
     .stream {
       flex: 1 1 45%;
       min-width: 300px;
@@ -39,13 +38,11 @@
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
-
     iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-
     .teams {
       display: flex;
       justify-content: center;
@@ -53,7 +50,6 @@
       padding: 2rem;
       flex-wrap: wrap;
     }
-
     .team {
       display: flex;
       flex-direction: row;
@@ -68,21 +64,19 @@
       min-width: 300px;
       border: 2px solid #ef5350;
     }
-
     .fusion-slot {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.3rem;
       background-color: #1c1c1c;
       padding: 0.5rem;
       border-radius: 8px;
       border: 2px solid #3c3c3c;
       box-shadow: inset 0 0 5px #000;
       flex: 1 1 calc(16.66% - 1rem);
-      max-width: 72px;
+      max-width: 90px;
     }
-
     .fusion-slot input {
       width: 50px;
       text-align: center;
@@ -92,11 +86,9 @@
       background-color: #2f2f2f;
       color: #fff;
     }
-
     .fusion-slot input::placeholder {
       color: #777;
     }
-
     .fusion-slot img {
       width: 72px;
       height: 72px;
@@ -104,71 +96,4 @@
       background-color: #000;
       border-radius: 4px;
     }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Pokémon Duo Viewer</h1>
-    <p>Zwei Streams nebeneinander - perfekt für gemeinsame Runs</p>
-  </header>
-
-  <section class="streams">
-    <div class="stream">
-      <iframe src="https://vdo.ninja/?view=PhvdavjYz&solo&room=TbsxVooke69&password=Bier"></iframe>
-    </div>
-    <div class="stream">
-      <iframe src="https://vdo.ninja/?view=PLAYER2_ID"></iframe>
-    </div>
-  </section>
-
-  <section class="teams">
-    <div class="team" id="team1"></div>
-    <div class="team" id="team2"></div>
-  </section>
-
-  <script>
-    function createFusionSlot(teamId, slotIndex) {
-      const container = document.createElement("div");
-      container.className = "fusion-slot";
-
-      const input1 = document.createElement("input");
-      input1.type = "number";
-      input1.placeholder = "ID1";
-      input1.min = 1;
-
-      const input2 = document.createElement("input");
-      input2.type = "number";
-      input2.placeholder = "ID2";
-      input2.min = 1;
-
-      const img = document.createElement("img");
-      img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
-      img.alt = "Fusion";
-
-      function updateImage() {
-        const id1 = input1.value;
-        const id2 = input2.value;
-        if (id1 && id2) {
-          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
-        } else {
-          img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
-        }
-      }
-
-      input1.addEventListener("input", updateImage);
-      input2.addEventListener("input", updateImage);
-
-      container.appendChild(input1);
-      container.appendChild(input2);
-      container.appendChild(img);
-
-      document.getElementById(teamId).appendChild(container);
-    }
-
-    for (let i = 0; i < 6; i++) {
-      createFusionSlot("team1", i);
-      createFusionSlot("team2", i);
-    }
-  </script>
-</body>
-</html>
+    .fusion-
