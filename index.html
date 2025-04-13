@@ -8,16 +8,17 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: sans-serif;
-      background-color: #f0f0f0;
-      color: #333;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
     }
 
     header {
       text-align: center;
       padding: 1rem;
-      background-color: #ffffff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: linear-gradient(to right, #ef5350, #fbc02d);
+      color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
     }
 
     .streams {
@@ -32,10 +33,11 @@
       flex: 1 1 45%;
       min-width: 300px;
       aspect-ratio: 16 / 9;
-      background-color: black;
-      border-radius: 8px;
+      background-color: #000;
+      border: 4px solid #fbc02d;
+      border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
 
     iframe {
@@ -47,20 +49,60 @@
     .teams {
       display: flex;
       justify-content: center;
-      gap: 4rem;
+      gap: 2rem;
       padding: 2rem;
+      flex-wrap: wrap;
     }
 
     .team {
       display: flex;
-      gap: 0.5rem;
+      flex-direction: row;
       flex-wrap: wrap;
+      gap: 1rem;
       justify-content: center;
+      background: linear-gradient(to bottom right, #2a2a2a, #1e1e1e);
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      width: 45%;
+      min-width: 300px;
+      border: 2px solid #ef5350;
     }
 
-    .team img {
-      width: 48px;
-      height: 48px;
+    .fusion-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: #1c1c1c;
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 2px solid #3c3c3c;
+      box-shadow: inset 0 0 5px #000;
+      flex: 1 1 calc(16.66% - 1rem);
+      max-width: 72px;
+    }
+
+    .fusion-slot input {
+      width: 50px;
+      text-align: center;
+      padding: 0.3rem;
+      border: none;
+      border-radius: 4px;
+      background-color: #2f2f2f;
+      color: #fff;
+    }
+
+    .fusion-slot input::placeholder {
+      color: #777;
+    }
+
+    .fusion-slot img {
+      width: 72px;
+      height: 72px;
+      image-rendering: pixelated;
+      background-color: #000;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -80,16 +122,53 @@
   </section>
 
   <section class="teams">
-    <div class="team">
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="Mewtu" />
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/59.png" alt="Arkani" />
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/470.png" alt="Folipurba" />
-    </div>
-    <div class="team">
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/186.png" alt="Quaxo" />
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/12.png" alt="Smettbo" />
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/162.png" alt="Wiesenior" />
-    </div>
+    <div class="team" id="team1"></div>
+    <div class="team" id="team2"></div>
   </section>
+
+  <script>
+    function createFusionSlot(teamId, slotIndex) {
+      const container = document.createElement("div");
+      container.className = "fusion-slot";
+
+      const input1 = document.createElement("input");
+      input1.type = "number";
+      input1.placeholder = "ID1";
+      input1.min = 1;
+
+      const input2 = document.createElement("input");
+      input2.type = "number";
+      input2.placeholder = "ID2";
+      input2.min = 1;
+
+      const img = document.createElement("img");
+      img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
+      img.alt = "Fusion";
+
+      function updateImage() {
+        const id1 = input1.value;
+        const id2 = input2.value;
+        if (id1 && id2) {
+          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
+        } else {
+          img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
+        }
+      }
+
+      input1.addEventListener("input", updateImage);
+      input2.addEventListener("input", updateImage);
+
+      container.appendChild(input1);
+      container.appendChild(input2);
+      container.appendChild(img);
+
+      document.getElementById(teamId).appendChild(container);
+    }
+
+    for (let i = 0; i < 6; i++) {
+      createFusionSlot("team1", i);
+      createFusionSlot("team2", i);
+    }
+  </script>
 </body>
 </html>
