@@ -143,6 +143,15 @@
       border: none;
       border-radius: 8px;
     }
+    .stats-box {
+      color: #fff;
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      text-align: left;
+      padding: 1rem;
+      background: #2c2c2c;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
@@ -169,7 +178,10 @@
     <br>
     <button onclick="showFusion()">Fusion anzeigen 🔍</button>
     <iframe id="fusionFrame" class="fusion-embed" style="display:none;"></iframe>
+    <div id="stats" class="stats-box"></div>
   </section>
+
+  <audio id="soundEffect" src="https://vgmsite.com/soundtracks/pokemon-gameboy-sound-effects/vuzlwnnv/001%20-%20Caught%20Pokemon.mp3"></audio>
 
   <script>
     const firebaseConfig = {
@@ -186,12 +198,18 @@
 
     let englishNames = {};
     let nameList = [];
+    let dataLoaded = false;
+
     fetch("https://raw.githubusercontent.com/Aegide/custom-fusion-sprites/main/pokemon_names.json")
       .then(res => res.json())
       .then(data => {
         englishNames = data;
         nameList = Object.values(data);
+        dataLoaded = true;
         $("#poke1, #poke2").autocomplete({ source: nameList });
+        document.querySelectorAll(".fusion-slot input").forEach(input => {
+          $(input).autocomplete({ source: nameList });
+        });
       });
 
     const idMap = {
@@ -215,65 +233,8 @@
       label.textContent = `${name1}/${name2}`;
     }
 
-    function createFusionSlot(teamId, slotIndex) {
-      const container = document.createElement("div");
-      container.className = "fusion-slot";
-      const input1 = document.createElement("input");
-      input1.placeholder = "ID1";
-      const input2 = document.createElement("input");
-      input2.placeholder = "ID2";
-      const nameLabel = document.createElement("div");
-      nameLabel.className = "name";
-      nameLabel.textContent = "-";
-      const img = document.createElement("img");
-      img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
-      const teamPath = `teams/${teamId}/slot${slotIndex}`;
-
-      function updateImageAndSync() {
-        const id1 = getId(input1.value);
-        const id2 = getId(input2.value);
-        if (id1 && id2) {
-          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
-          db.ref(teamPath).set({ id1, id2 });
-          updateNames(id1, id2, nameLabel);
-          if (teamId === "team1" && slotIndex === 0) {
-            document.getElementById("poke1").value = englishNames[id1];
-            document.getElementById("poke2").value = englishNames[id2];
-            showFusion();
-          }
-        } else {
-          img.src = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
-          nameLabel.textContent = "-";
-        }
-      }
-
-      input1.addEventListener("input", updateImageAndSync);
-      input2.addEventListener("input", updateImageAndSync);
-
-      db.ref(teamPath).on("value", (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          input1.value = data.id1;
-          input2.value = data.id2;
-          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${data.id1}.${data.id2}.png`;
-          updateNames(data.id1, data.id2, nameLabel);
-        }
-      });
-
-      container.append(input1, input2, img, nameLabel);
-      document.getElementById(teamId).appendChild(container);
-    }
-
-    for (let i = 0; i < 6; i++) {
-      createFusionSlot("team1", i);
-      createFusionSlot("team2", i);
-    }
-
     function showFusion() {
-      if (Object.keys(englishNames).length === 0) {
-        alert("Pokémon-Daten werden noch geladen. Bitte warte kurz.");
-        return;
-      }
+      if (!dataLoaded) return;
 
       const poke1 = document.getElementById("poke1").value.trim();
       const poke2 = document.getElementById("poke2").value.trim();
@@ -285,9 +246,22 @@
         return;
       }
 
-      const frame = document.getElementById("fusionFrame");
-      frame.src = `https://infinitefusion.online/?firstpoke=${englishNames[id1]}&secondpoke=${englishNames[id2]}`;
-      frame.style.display = "block";
+      document.getElementById("fusionFrame").src = `https://infinitefusion.online/?firstpoke=${englishNames[id1]}&secondpoke=${englishNames[id2]}`;
+      document.getElementById("fusionFrame").style.display = "block";
+      document.getElementById("soundEffect").play();
+
+      fetch(`https://infinitefusion.io/api/fusion/${id1}/${id2}`)
+        .then(r => r.json())
+        .then(d => {
+          document.getElementById("stats").innerHTML = `
+            <strong>Stats:</strong><br>
+            HP: ${d.stats.hp}, ATK: ${d.stats.atk}, DEF: ${d.stats.def}, SP.ATK: ${d.stats.spatk}, SP.DEF: ${d.stats.spdef}, SPEED: ${d.stats.speed}<br>
+            <strong>Abilities:</strong> ${d.abilities?.join(", ") || "-"}<br>
+            <strong>Weaknesses:</strong> ${d.weaknesses?.join(", ") || "-"}
+          `;
+        }).catch(() => {
+          document.getElementById("stats").innerHTML = "⚠️ Keine Daten verfügbar.";
+        });
     }
   </script>
 </body>
