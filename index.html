@@ -13,16 +13,17 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #121212;
-      color: #ffffff;
+      font-family: 'Helvetica Neue', sans-serif;
+      background-color: #1C1C1E;
+      color: #F8F8F8;
     }
     header {
       text-align: center;
-      padding: 1rem;
-      background: linear-gradient(to right, #ef5350, #fbc02d);
-      color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      padding: 2rem;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to right, #FF3B30, #007AFF);
+      color: white;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     .streams {
       display: flex;
@@ -34,16 +35,17 @@
     .stream {
       flex: 1 1 45%;
       min-width: 300px;
-      aspect-ratio: 16 / 9;
-      background-color: #000;
-      border: 4px solid #fbc02d;
-      border-radius: 10px;
+      border-radius: 30px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      background: #2C2C2E;
     }
-    iframe {
+    .stream iframe {
+      aspect-ratio: 16 / 9;
       width: 100%;
-      height: 100%;
+      height: auto;
       border: none;
     }
     .teams {
@@ -58,16 +60,16 @@
       flex-wrap: wrap;
       gap: 1rem;
       justify-content: center;
-      background: linear-gradient(to bottom right, #2a2a2a, #1e1e1e);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
       padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-      width: 45%;
-      min-width: 300px;
-      border: 2px solid #ef5350;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      box-sizing: border-box;
     }
     .fusion-slot {
-      width: 72px;
+      width: 80px;
       text-align: center;
     }
     .fusion-slot img {
@@ -75,19 +77,32 @@
       height: 72px;
       image-rendering: pixelated;
       background-color: #000;
-      border-radius: 4px;
+      border-radius: 50%;
+      object-fit: cover;
     }
     .fusion-slot .name {
       font-size: 0.75rem;
       margin-top: 0.2rem;
     }
+    .fusion-slot input {
+      width: 54px;
+      margin: 2px;
+      padding: 6px;
+      font-size: 0.75rem;
+      border-radius: 8px;
+      border: none;
+      background-color: #2C2C2E;
+      color: white;
+      text-align: center;
+    }
     .fusion-viewer {
       margin: 3rem auto;
       max-width: 900px;
-      background-color: #1e1e1e;
+      background-color: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
       padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
       text-align: center;
     }
     .fusion-viewer input {
@@ -95,22 +110,25 @@
       margin: 0.5rem;
       font-size: 1rem;
       border: none;
-      border-radius: 6px;
-      background-color: #2a2a2a;
+      border-radius: 10px;
+      background-color: #2C2C2E;
       color: white;
+      width: 120px;
     }
     .fusion-viewer button {
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.2rem;
       margin-top: 0.5rem;
       font-size: 1rem;
       border: none;
-      border-radius: 6px;
-      background-color: #ef5350;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
       color: white;
+      backdrop-filter: blur(10px);
       cursor: pointer;
+      transition: all 0.2s ease-in-out;
     }
     .fusion-viewer button:hover {
-      background-color: #d32f2f;
+      background-color: #64D2FF;
     }
   </style>
 </head>
@@ -131,57 +149,94 @@
   </section>
   <section class="fusion-viewer">
     <h2>Fusion Viewer</h2>
-    <input type="text" id="poke1" placeholder="Pokémon 1" />
-    <input type="text" id="poke2" placeholder="Pokémon 2" />
+    <input type="text" id="name1" placeholder="Pokémon 1" />
+    <input type="text" id="name2" placeholder="Pokémon 2" />
     <br>
-    <button onclick="showFusion()">Fusion anzeigen 🔍</button>
+    <button onclick="showNamedFusion()">Fusion anzeigen 🔍</button>
   </section>
   <script>
-    const idMap = {
-      mewtu: 150, glurak: 6, bisasam: 1, schiggy: 7, taubsi: 16,
-      pikachu: 25, raupy: 10, safcon: 11, smogon: 109,
-      wartortle: 8, hunduster: 228
-    };
     const englishNames = {
-      1: "Bulbasaur", 6: "Charizard", 7: "Squirtle", 8: "Wartortle",
-      10: "Caterpie", 11: "Metapod", 16: "Pidgey", 25: "Pikachu",
-      109: "Koffing", 150: "Mewtwo", 228: "Houndour"
+      1: "Bulbasaur", 2: "Ivysaur", 3: "Venusaur", 4: "Charmander", 5: "Charmeleon", 6: "Charizard",
+      7: "Squirtle", 8: "Wartortle", 9: "Blastoise", 10: "Caterpie", 11: "Metapod", 12: "Butterfree",
+      25: "Pikachu", 59: "Arcanine", 75: "Graveler", 110: "Weezing", 135: "Jolteon", 149: "Dragonite", 150: "Mewtwo",
+      226: "Mantine", 470: "Leafeon"
     };
-    function getId(name) {
-      name = name.toLowerCase();
-      return idMap[name] || null;
+    const nameToId = {};
+    for (const [id, name] of Object.entries(englishNames)) {
+      nameToId[name.toLowerCase()] = parseInt(id);
     }
-    function showFusion() {
-      const p1 = document.getElementById("poke1").value;
-      const p2 = document.getElementById("poke2").value;
-      const id1 = getId(p1);
-      const id2 = getId(p2);
-      if (!id1 || !id2) return alert("Ungültiger Pokémon-Name.");
+
+    function showNamedFusion() {
+      const name1 = document.getElementById("name1").value.trim().toLowerCase();
+      const name2 = document.getElementById("name2").value.trim().toLowerCase();
+      const id1 = nameToId[name1];
+      const id2 = nameToId[name2];
+      if (!id1 || !id2) return alert("Namen nicht erkannt");
       const dexUrl = `https://infinitefusiondex.com/details/${id1}.${id2}`;
       window.open(dexUrl, '_blank');
     }
+
+    function createFusionSlot(initialId1 = '', initialId2 = '') {
+      const slot = document.createElement('div');
+      slot.className = 'fusion-slot';
+
+      const id1 = document.createElement('input');
+      id1.type = 'number';
+      id1.placeholder = 'ID1';
+      id1.value = initialId1;
+
+      const id2 = document.createElement('input');
+      id2.type = 'number';
+      id2.placeholder = 'ID2';
+      id2.value = initialId2;
+
+      const img = document.createElement('img');
+      const placeholderUrl = 'https://www.spriters-resource.com/resources/sheet_icons/108/110743.png?updated=1542458267';
+      const name = document.createElement('div');
+      name.className = 'name';
+
+      const updateImage = () => {
+        const v1 = parseInt(id1.value);
+        const v2 = parseInt(id2.value);
+        if (!isNaN(v1) && !isNaN(v2)) {
+          const customUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/custom/${v1}.${v2}.png`;
+          const fallbackUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${v1}.${v2}.png`;
+          img.onerror = () => {
+            img.onerror = null;
+            img.src = fallbackUrl;
+          };
+          img.src = customUrl;
+          name.textContent = `#${v1}/#${v2}`;
+        } else {
+          img.onerror = null;
+          img.src = placeholderUrl;
+          name.textContent = '-';
+        }
+      };
+
+      id1.addEventListener('change', updateImage);
+      id2.addEventListener('change', updateImage);
+
+      slot.appendChild(id1);
+      slot.appendChild(id2);
+      slot.appendChild(img);
+      slot.appendChild(name);
+
+      updateImage();
+      return slot;
+    }
+
     function renderTeams() {
-      const teams = [
-        [150, 226, 59, 470, 149, 110],
-        [25, 2, 12, 75, 10, 11]
-      ];
-      teams.forEach((team, idx) => {
-        const el = document.getElementById(`team${idx + 1}`);
+      const teams = [document.getElementById('team1'), document.getElementById('team2')];
+      teams.forEach(el => {
         el.innerHTML = '';
-        team.forEach(id => {
-          const slot = document.createElement('div');
-          slot.className = 'fusion-slot';
-          const img = document.createElement('img');
-          img.src = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/official/${id}.png`;
-          const name = document.createElement('div');
-          name.className = 'name';
-          name.textContent = englishNames[id] || `#${id}`;
-          slot.appendChild(img);
-          slot.appendChild(name);
+        for (let i = 0; i < 6; i++) {
+          const slot = createFusionSlot();
           el.appendChild(slot);
-        });
+        }
       });
     }
+
     renderTeams();
   </script>
 </body>
