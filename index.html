@@ -15,6 +15,10 @@
       --input-border: #444;
       --team-bg: rgba(255, 255, 255, 0.08);
       --fusion-bg: rgba(30, 30, 30, 0.85);
+      --stream-left-bg: #2c1c1e;
+      --stream-right-bg: #1c1e2c;
+      --stream-left-shadow: rgba(255, 60, 60, 0.6);
+      --stream-right-shadow: rgba(80, 130, 255, 0.6);
     }
 
     html[data-theme="light"] {
@@ -92,12 +96,20 @@
       min-width: 400px;
       max-width: 1000px;
       border-radius: 20px;
-      background: #1e1e1e;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       margin: auto;
+    }
+
+    .stream:first-child {
+      background: var(--stream-left-bg);
+      box-shadow: 0 4px 30px var(--stream-left-shadow);
+    }
+
+    .stream:last-child {
+      background: var(--stream-right-bg);
+      box-shadow: 0 4px 30px var(--stream-right-shadow);
     }
 
     iframe {
@@ -302,57 +314,18 @@
       });
     }
 
-    function setupAutocompleteElement(input) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'autocomplete-wrapper';
-      input.parentNode.insertBefore(wrapper, input);
-      wrapper.appendChild(input);
-      const list = document.createElement('div');
-      list.className = 'autocomplete-list';
-      wrapper.appendChild(list);
-
-      input.addEventListener('input', () => {
-        const value = input.value.toLowerCase();
-        list.innerHTML = '';
-        if (!value || value.length < 1) return;
-
-        const matches = Object.values(englishNames)
-          .filter(name => name.toLowerCase().includes(value))
-          .slice(0, 10);
-
-        matches.forEach(name => {
-          const item = document.createElement('div');
-          item.textContent = name;
-          item.onclick = () => {
-            input.value = name;
-            list.innerHTML = '';
-            input.dispatchEvent(new Event('input'));
-          };
-          list.appendChild(item);
-        });
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!list.contains(e.target) && e.target !== input) {
-          list.innerHTML = '';
-        }
-      });
-    }
-
-    function createFusionSlot(initialName1 = '', initialName2 = '') {
+    function createFusionSlot() {
       const slot = document.createElement('div');
       slot.className = 'fusion-slot';
 
       const name1 = document.createElement('input');
       name1.type = 'text';
       name1.placeholder = 'Name1';
-      name1.value = initialName1;
       name1.autocomplete = 'off';
 
       const name2 = document.createElement('input');
       name2.type = 'text';
       name2.placeholder = 'Name2';
-      name2.value = initialName2;
       name2.autocomplete = 'off';
 
       const img = document.createElement('img');
@@ -372,7 +345,7 @@
           img.src = customUrl;
           name.textContent = `#${id1}/#${id2}`;
         } else {
-          img.src = "https://www.spriters-resource.com/resources/sheet_icons/108/110743.png";
+          img.src = \"https://www.spriters-resource.com/resources/sheet_icons/108/110743.png\";
           name.textContent = '-';
         }
       };
@@ -380,15 +353,11 @@
       name1.addEventListener('input', updateImage);
       name2.addEventListener('input', updateImage);
 
-      setupAutocompleteElement(name1);
-      setupAutocompleteElement(name2);
-
       slot.appendChild(name1);
       slot.appendChild(name2);
       slot.appendChild(img);
       slot.appendChild(name);
 
-      updateImage();
       return slot;
     }
 
