@@ -163,18 +163,6 @@
       text-align: center;
     }
 
-    .fusion-viewer input {
-      padding: 0.75rem;
-      margin: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid var(--input-border);
-      border-radius: 14px;
-      background-color: #2c2c2e;
-      color: white;
-      width: 140px;
-      text-align: center;
-    }
-
     .fusion-viewer button {
       padding: 0.75rem 1.5rem;
       margin-top: 1rem;
@@ -187,32 +175,47 @@
       box-shadow: 0 0 10px var(--button-glow);
       transition: all 0.3s ease-in-out;
     }
- .autocomplete-list {
-    background: #1e1e1e;
-    color: white;
-    max-height: 200px;
-    overflow-y: auto;
-    position: absolute;
-    z-index: 1000;
-    border: 1px solid #444;
-    border-radius: 0.5rem;
-  }
 
-  .autocomplete-list div {
-    padding: 8px 12px;
-    cursor: pointer;
-  }
-
-  .autocomplete-list div:hover {
-    background: #2a2a2a;
-  }
-
-  .autocomplete-wrapper {
-    position: relative;
-    display: inline-block;
-  }
     .fusion-viewer button:hover {
       transform: scale(1.05);
+    }
+
+    .autocomplete-wrapper {
+      position: relative;
+      display: inline-block;
+      margin: 0.5rem;
+    }
+
+    .autocomplete-list {
+      background: #1e1e1e;
+      color: white;
+      max-height: 200px;
+      overflow-y: auto;
+      position: absolute;
+      z-index: 1000;
+      border: 1px solid #444;
+      border-radius: 0.5rem;
+      width: 140px;
+    }
+
+    .autocomplete-list div {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .autocomplete-list div:hover {
+      background: #2a2a2a;
+    }
+
+    .autocomplete-wrapper input {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid var(--input-border);
+      border-radius: 14px;
+      background-color: #2c2c2e;
+      color: white;
+      width: 140px;
+      text-align: center;
     }
 
     @media (max-width: 1024px) {
@@ -228,15 +231,7 @@
     <p>Zwei Streams nebeneinander – perfekt für gemeinsame Runs</p>
     <button class="toggle-button" onclick="toggleTheme()">🌗 Theme wechseln</button>
   </header>
-<div class="autocomplete-wrapper">
-  <input type="text" id="name1" placeholder="Pokémon 1" autocomplete="off" />
-  <div class="autocomplete-list" id="list1"></div>
-</div>
 
-<div class="autocomplete-wrapper">
-  <input type="text" id="name2" placeholder="Pokémon 2" autocomplete="off" />
-  <div class="autocomplete-list" id="list2"></div>
-</div>
   <section class="streams">
     <div class="stream">
       <iframe src="https://vdo.ninja/?view=NHeFCZz&solo&room=TbsxVooke69"></iframe>
@@ -250,13 +245,22 @@
 
   <section class="fusion-viewer">
     <h2>Fusion Viewer</h2>
-    <input type="text" id="name1" placeholder="Pokémon 1" />
-    <input type="text" id="name2" placeholder="Pokémon 2" />
+
+    <div class="autocomplete-wrapper">
+      <input type="text" id="name1" placeholder="Pokémon 1" autocomplete="off" />
+      <div class="autocomplete-list" id="list1"></div>
+    </div>
+
+    <div class="autocomplete-wrapper">
+      <input type="text" id="name2" placeholder="Pokémon 2" autocomplete="off" />
+      <div class="autocomplete-list" id="list2"></div>
+    </div>
+
     <br>
     <button onclick="showNamedFusion()">Fusion anzeigen 🔍</button>
   </section>
 
-  <!-- Eingebundene Pokédex-Daten -->
+  <!-- Pokédex auslagern -->
   <script src="pokedex.js"></script>
 
   <script>
@@ -328,41 +332,39 @@
         }
       });
     }
-function setupAutocomplete(inputId, listId) {
-  const input = document.getElementById(inputId);
-  const list = document.getElementById(listId);
 
-  input.addEventListener('input', () => {
-    const value = input.value.toLowerCase();
-    list.innerHTML = '';
+    function setupAutocomplete(inputId, listId) {
+      const input = document.getElementById(inputId);
+      const list = document.getElementById(listId);
 
-    if (!value || value.length < 1) return;
-
-    const matches = Object.values(englishNames)
-      .filter(name => name.toLowerCase().includes(value))
-      .slice(0, 10); // max. 10 Vorschläge
-
-    matches.forEach(name => {
-      const item = document.createElement('div');
-      item.textContent = name;
-      item.onclick = () => {
-        input.value = name;
+      input.addEventListener('input', () => {
+        const value = input.value.toLowerCase();
         list.innerHTML = '';
-      };
-      list.appendChild(item);
-    });
-  });
 
-  // Schließe Liste, wenn man woanders klickt
-  document.addEventListener('click', (e) => {
-    if (!list.contains(e.target) && e.target !== input) {
-      list.innerHTML = '';
+        if (!value || value.length < 1) return;
+
+        const matches = Object.values(englishNames)
+          .filter(name => name.toLowerCase().includes(value))
+          .slice(0, 10); // max. 10 Vorschläge
+
+        matches.forEach(name => {
+          const item = document.createElement('div');
+          item.textContent = name;
+          item.onclick = () => {
+            input.value = name;
+            list.innerHTML = '';
+          };
+          list.appendChild(item);
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!list.contains(e.target) && e.target !== input) {
+          list.innerHTML = '';
+        }
+      });
     }
-  });
-}
 
-setupAutocomplete('name1', 'list1');
-setupAutocomplete('name2', 'list2');
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute('data-theme');
@@ -370,6 +372,8 @@ setupAutocomplete('name2', 'list2');
     }
 
     renderTeams();
+    setupAutocomplete('name1', 'list1');
+    setupAutocomplete('name2', 'list2');
   </script>
 </body>
 </html>
