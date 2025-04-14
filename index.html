@@ -122,17 +122,6 @@
       text-align: center;
     }
 
-    .fusion-slot img {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      object-fit: cover;
-      image-rendering: pixelated;
-      background: radial-gradient(circle, #2a2a2a, #000);
-      border: 2px solid #ff6ec4;
-      box-shadow: 0 0 10px #ff6ec4;
-    }
-
     .fusion-slot input {
       width: 60px;
       margin: 4px auto;
@@ -144,6 +133,17 @@
       color: white;
       text-align: center;
       display: block;
+    }
+
+    .fusion-slot img {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      image-rendering: pixelated;
+      background: radial-gradient(circle, #2a2a2a, #000);
+      border: 2px solid #ff6ec4;
+      box-shadow: 0 0 10px #ff6ec4;
     }
 
     .fusion-slot .name {
@@ -245,25 +245,26 @@
 
   <section class="fusion-viewer">
     <h2>Fusion Viewer</h2>
-
     <div class="autocomplete-wrapper">
       <input type="text" id="name1" placeholder="Pokémon 1" autocomplete="off" />
       <div class="autocomplete-list" id="list1"></div>
     </div>
-
     <div class="autocomplete-wrapper">
       <input type="text" id="name2" placeholder="Pokémon 2" autocomplete="off" />
       <div class="autocomplete-list" id="list2"></div>
     </div>
-
     <br>
     <button onclick="showNamedFusion()">Fusion anzeigen 🔍</button>
   </section>
 
-  <!-- Pokédex auslagern -->
   <script src="pokedex.js"></script>
-
   <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+
     function showNamedFusion() {
       const name1 = document.getElementById("name1").value.trim().toLowerCase();
       const name2 = document.getElementById("name2").value.trim().toLowerCase();
@@ -274,47 +275,116 @@
       window.open(dexUrl, '_blank');
     }
 
-    function createFusionSlot(initialId1 = '', initialId2 = '') {
+    function setupAutocomplete(input, listId) {
+      const list = document.getElementById(listId);
+      input.addEventListener('input', () => {
+        const value = input.value.toLowerCase();
+        list.innerHTML = '';
+        if (!value || value.length < 1) return;
+        const matches = Object.values(englishNames)
+          .filter(name => name.toLowerCase().includes(value))
+          .slice(0, 10);
+        matches.forEach(name => {
+          const item = document.createElement('div');
+          item.textContent = name;
+          item.onclick = () => {
+            input.value = name;
+            list.innerHTML = '';
+            input.dispatchEvent(new Event('input'));
+          };
+          list.appendChild(item);
+        });
+      });
+      document.addEventListener('click', (e) => {
+        if (!list.contains(e.target) && e.target !== input) {
+          list.innerHTML = '';
+        }
+      });
+    }
+
+    function setupAutocompleteElement(input) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'autocomplete-wrapper';
+      input.parentNode.insertBefore(wrapper, input);
+      wrapper.appendChild(input);
+      const list = document.createElement('div');
+      list.className = 'autocomplete-list';
+      wrapper.appendChild(list);
+
+      input.addEventListener('input', () => {
+        const value = input.value.toLowerCase();
+        list.innerHTML = '';
+        if (!value || value.length < 1) return;
+
+        const matches = Object.values(englishNames)
+          .filter(name => name.toLowerCase().includes(value))
+          .slice(0, 10);
+
+        matches.forEach(name => {
+          const item = document.createElement('div');
+          item.textContent = name;
+          item.onclick = () => {
+            input.value = name;
+            list.innerHTML = '';
+            input.dispatchEvent(new Event('input'));
+          };
+          list.appendChild(item);
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!list.contains(e.target) && e.target !== input) {
+          list.innerHTML = '';
+        }
+      });
+    }
+
+    function createFusionSlot(initialName1 = '', initialName2 = '') {
       const slot = document.createElement('div');
       slot.className = 'fusion-slot';
 
-      const id1 = document.createElement('input');
-      id1.type = 'number';
-      id1.placeholder = 'ID1';
-      id1.value = initialId1;
+      const name1 = document.createElement('input');
+      name1.type = 'text';
+      name1.placeholder = 'Name1';
+      name1.value = initialName1;
+      name1.autocomplete = 'off';
 
-      const id2 = document.createElement('input');
-      id2.type = 'number';
-      id2.placeholder = 'ID2';
-      id2.value = initialId2;
+      const name2 = document.createElement('input');
+      name2.type = 'text';
+      name2.placeholder = 'Name2';
+      name2.value = initialName2;
+      name2.autocomplete = 'off';
 
       const img = document.createElement('img');
       const name = document.createElement('div');
       name.className = 'name';
 
       const updateImage = () => {
-        const v1 = parseInt(id1.value);
-        const v2 = parseInt(id2.value);
-        if (!isNaN(v1) && !isNaN(v2)) {
-          const customUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/custom/${v1}.${v2}.png`;
-          const fallbackUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${v1}.${v2}.png`;
+        const id1 = nameToId[name1.value.toLowerCase()];
+        const id2 = nameToId[name2.value.toLowerCase()];
+        if (id1 && id2) {
+          const customUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/custom/${id1}.${id2}.png`;
+          const fallbackUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
           img.onerror = () => {
             img.onerror = null;
             img.src = fallbackUrl;
           };
           img.src = customUrl;
-          name.textContent = `#${v1}/#${v2}`;
+          name.textContent = `#${id1}/#${id2}`;
         } else {
           img.src = "https://www.spriters-resource.com/resources/sheet_icons/108/110743.png";
           name.textContent = '-';
         }
       };
 
-      id1.addEventListener('change', updateImage);
-      id2.addEventListener('change', updateImage);
+      name1.addEventListener('input', updateImage);
+      name2.addEventListener('input', updateImage);
 
-      slot.appendChild(id1);
-      slot.appendChild(id2);
+      setupAutocompleteElement(name1);
+      setupAutocompleteElement(name2);
+
+      slot.appendChild(name1);
+      slot.appendChild(name2);
       slot.appendChild(img);
       slot.appendChild(name);
 
@@ -333,47 +403,9 @@
       });
     }
 
-    function setupAutocomplete(inputId, listId) {
-      const input = document.getElementById(inputId);
-      const list = document.getElementById(listId);
-
-      input.addEventListener('input', () => {
-        const value = input.value.toLowerCase();
-        list.innerHTML = '';
-
-        if (!value || value.length < 1) return;
-
-        const matches = Object.values(englishNames)
-          .filter(name => name.toLowerCase().includes(value))
-          .slice(0, 10); // max. 10 Vorschläge
-
-        matches.forEach(name => {
-          const item = document.createElement('div');
-          item.textContent = name;
-          item.onclick = () => {
-            input.value = name;
-            list.innerHTML = '';
-          };
-          list.appendChild(item);
-        });
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!list.contains(e.target) && e.target !== input) {
-          list.innerHTML = '';
-        }
-      });
-    }
-
-    function toggleTheme() {
-      const html = document.documentElement;
-      const current = html.getAttribute('data-theme');
-      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-    }
-
     renderTeams();
-    setupAutocomplete('name1', 'list1');
-    setupAutocomplete('name2', 'list2');
+    setupAutocomplete(document.getElementById('name1'), 'list1');
+    setupAutocomplete(document.getElementById('name2'), 'list2');
   </script>
 </body>
 </html>
