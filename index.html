@@ -148,16 +148,18 @@
       display: block;
     }
 
-    .fusion-slot img {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      object-fit: cover;
-      image-rendering: pixelated;
-      background: radial-gradient(circle, #2a2a2a, #000);
-      border: 2px solid #ff6ec4;
-      box-shadow: 0 0 10px #ff6ec4;
-    }
+.fusion-slot img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  background: radial-gradient(circle, #2a2a2a, #000);
+  border: 2px solid transparent;
+  box-shadow: 0 0 10px transparent;
+}
+
+
 
     .fusion-slot .name {
       font-size: 0.75rem;
@@ -312,76 +314,83 @@
       });
     }
 
-    function createFusionSlot() {
-      const slot = document.createElement('div');
-      slot.className = 'fusion-slot';
+function createFusionSlot(teamIndex) {
+  const slot = document.createElement('div');
+  slot.className = 'fusion-slot';
 
-      const name1 = document.createElement('input');
-      name1.type = 'text';
-      name1.placeholder = 'Name1';
-      name1.autocomplete = 'off';
+  const name1 = document.createElement('input');
+  const name2 = document.createElement('input');
+  name1.type = 'text'; name2.type = 'text';
+  name1.placeholder = 'Name1'; name2.placeholder = 'Name2';
+  name1.autocomplete = 'off'; name2.autocomplete = 'off';
 
-      const name2 = document.createElement('input');
-      name2.type = 'text';
-      name2.placeholder = 'Name2';
-      name2.autocomplete = 'off';
+  const img = document.createElement('img');
+  const name = document.createElement('div');
+  name.className = 'name';
 
-      const img = document.createElement('img');
-      const name = document.createElement('div');
-      name.className = 'name';
+  const placeholderImg = "https://upload.wikimedia.org/wikipedia/commons/5/53/Poké_Ball_icon.svg";
 
-      const updateImage = () => {
-        const id1 = nameToId[name1.value.toLowerCase()];
-        const id2 = nameToId[name2.value.toLowerCase()];
-        if (id1 && id2) {
-          const customUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/custom/${id1}.${id2}.png`;
-          const fallbackUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
-          img.onerror = () => {
-            img.onerror = null;
-            img.src = fallbackUrl;
-          };
-          img.src = customUrl;
-          name.textContent = `#${id1}/#${id2}`;
-        } else {
-          img.src = "https://www.spriters-resource.com/resources/sheet_icons/108/110743.png";
-          name.textContent = '-';
-        }
+  const updateImage = () => {
+    const id1 = nameToId[name1.value.toLowerCase()];
+    const id2 = nameToId[name2.value.toLowerCase()];
+    if (id1 && id2) {
+      const customUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/custom/${id1}.${id2}.png`;
+      const fallbackUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
+      img.onerror = () => {
+        img.onerror = null;
+        img.src = fallbackUrl;
       };
-
-      name1.addEventListener('input', updateImage);
-      name2.addEventListener('input', updateImage);
-
-      slot.appendChild(name1);
-      slot.appendChild(name2);
-      slot.appendChild(img);
-      slot.appendChild(name);
-
-      const listId1 = 'list_' + Math.random().toString(36).substring(2);
-      const listId2 = 'list_' + Math.random().toString(36).substring(2);
-      const list1 = document.createElement('div');
-      const list2 = document.createElement('div');
-      list1.id = listId1;
-      list2.id = listId2;
-      list1.className = 'autocomplete-list';
-      list2.className = 'autocomplete-list';
-      slot.appendChild(list1);
-      slot.appendChild(list2);
-      setupAutocomplete(name1, listId1);
-      setupAutocomplete(name2, listId2);
-
-      return slot;
+      img.src = customUrl;
+      name.textContent = `#${id1}/#${id2}`;
+    } else {
+      img.src = placeholderImg;
+      name.textContent = '-';
     }
+  };
 
-    function renderTeams() {
-      const teams = [document.getElementById('team1'), document.getElementById('team2')];
-      teams.forEach(el => {
-        el.innerHTML = '';
-        for (let i = 0; i < 6; i++) {
-          const slot = createFusionSlot();
-          el.appendChild(slot);
-        }
-      });
+  name1.addEventListener('input', updateImage);
+  name2.addEventListener('input', updateImage);
+
+  // Färbe Rahmen je nach Team
+  const borderColor = teamIndex === 0 ? '#ff6b6b' : '#4cafff';
+  img.style.border = `2px solid ${borderColor}`;
+  img.style.boxShadow = `0 0 10px ${borderColor}`;
+
+  slot.appendChild(name1);
+  slot.appendChild(name2);
+  slot.appendChild(img);
+  slot.appendChild(name);
+
+  const listId1 = 'list_' + Math.random().toString(36).substring(2);
+  const listId2 = 'list_' + Math.random().toString(36).substring(2);
+  const list1 = document.createElement('div');
+  const list2 = document.createElement('div');
+  list1.id = listId1; list2.id = listId2;
+  list1.className = 'autocomplete-list';
+  list2.className = 'autocomplete-list';
+  slot.appendChild(list1);
+  slot.appendChild(list2);
+  setupAutocomplete(name1, listId1);
+  setupAutocomplete(name2, listId2);
+
+  // Setze zuerst Pokéball
+  img.src = placeholderImg;
+
+  return slot;
+}
+
+
+function renderTeams() {
+  const teams = [document.getElementById('team1'), document.getElementById('team2')];
+  teams.forEach((el, i) => {
+    el.innerHTML = '';
+    for (let j = 0; j < 6; j++) {
+      const slot = createFusionSlot(i); // ← Übergib Team-Index (0 = links, 1 = rechts)
+      el.appendChild(slot);
     }
+  });
+}
+
 
     renderTeams();
     setupAutocomplete(document.getElementById('name1'), 'list1');
