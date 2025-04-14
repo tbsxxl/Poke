@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pokémon Duo Viewer</title>
+  <script src="pokedex.js"></script>
   <style>
     :root {
       --bg-color-light: #f2f2f7;
@@ -33,11 +34,11 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      transition: background-color 0.3s ease, color 0.3s ease;
       margin: 0;
       padding: 0;
       background-color: inherit;
       color: inherit;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     header {
@@ -269,7 +270,6 @@
     <button onclick="showNamedFusion()">Fusion anzeigen 🔍</button>
   </section>
 
-  <script src="pokedex.js"></script>
   <script>
     function toggleTheme() {
       const html = document.documentElement;
@@ -293,9 +293,7 @@
         const value = input.value.toLowerCase();
         list.innerHTML = '';
         if (!value || value.length < 1) return;
-        const matches = Object.values(englishNames)
-          .filter(name => name.toLowerCase().includes(value))
-          .slice(0, 10);
+        const matches = Object.values(englishNames).filter(name => name.toLowerCase().includes(value)).slice(0, 10);
         matches.forEach(name => {
           const item = document.createElement('div');
           item.textContent = name;
@@ -345,7 +343,7 @@
           img.src = customUrl;
           name.textContent = `#${id1}/#${id2}`;
         } else {
-          img.src = \"https://www.spriters-resource.com/resources/sheet_icons/108/110743.png\";
+          img.src = "https://www.spriters-resource.com/resources/sheet_icons/108/110743.png";
           name.textContent = '-';
         }
       };
@@ -357,6 +355,19 @@
       slot.appendChild(name2);
       slot.appendChild(img);
       slot.appendChild(name);
+
+      const listId1 = 'list_' + Math.random().toString(36).substring(2);
+      const listId2 = 'list_' + Math.random().toString(36).substring(2);
+      const list1 = document.createElement('div');
+      const list2 = document.createElement('div');
+      list1.id = listId1;
+      list2.id = listId2;
+      list1.className = 'autocomplete-list';
+      list2.className = 'autocomplete-list';
+      slot.appendChild(list1);
+      slot.appendChild(list2);
+      setupAutocomplete(name1, listId1);
+      setupAutocomplete(name2, listId2);
 
       return slot;
     }
