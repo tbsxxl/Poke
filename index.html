@@ -4,8 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pokémon Duo Viewer</title>
+  <script src="pokedex.js"></script>
   <style>
     :root {
+      --bg-color-light: #f2f2f7;
+      --text-color-light: #1c1c1e;
       --bg-color-dark: #121212;
       --text-color-dark: #ffffff;
       --accent-gradient: linear-gradient(135deg, #ff6ec4, #7873f5);
@@ -13,8 +16,15 @@
       --input-border: #444;
       --team-bg: rgba(255, 255, 255, 0.08);
       --fusion-bg: rgba(30, 30, 30, 0.85);
+      --stream-left-bg: #2c1c1e;
+      --stream-right-bg: #1c1e2c;
       --stream-left-shadow: rgba(255, 60, 60, 0.6);
       --stream-right-shadow: rgba(80, 130, 255, 0.6);
+    }
+
+    html[data-theme="light"] {
+      background-color: var(--bg-color-light);
+      color: var(--text-color-light);
     }
 
     html[data-theme="dark"] {
@@ -32,13 +42,14 @@
     }
 
     header {
+      position: relative;
       text-align: center;
       padding: 2rem 1rem 3.5rem;
       background: var(--fusion-bg);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid #2c2c2e;
+      z-index: 10;
       color: white;
-      position: relative;
     }
 
     header h1 {
@@ -47,7 +58,6 @@
       background: var(--accent-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: fadeIn 0.8s ease;
     }
 
     header p {
@@ -67,7 +77,7 @@
       font-weight: bold;
       cursor: pointer;
       box-shadow: 0 0 10px var(--button-glow);
-      transition: transform 0.2s ease;
+      transition: background 0.3s ease, transform 0.2s ease;
     }
 
     .toggle-button:hover {
@@ -76,64 +86,59 @@
 
     .streams {
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 2rem;
       padding: 2rem 1rem;
     }
 
     .stream {
-      flex: 1 1 50%;
-      max-width: 50%;
-      background: #1f1f1f;
+      flex: 1 1 100%;
+      min-width: 400px;
+      max-width: 1000px;
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 4px 30px var(--stream-left-shadow);
       display: flex;
       flex-direction: column;
-      animation: fadeIn 0.5s ease;
+      margin: auto;
+    }
+
+    .stream:first-child {
+      background: var(--stream-left-bg);
+      box-shadow: 0 4px 30px var(--stream-left-shadow);
     }
 
     .stream:last-child {
+      background: var(--stream-right-bg);
       box-shadow: 0 4px 30px var(--stream-right-shadow);
     }
 
     iframe {
       width: 100%;
-      aspect-ratio: 16/9;
+      aspect-ratio: 16 / 9;
       border: none;
     }
 
     .team {
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 1rem;
       padding: 1rem;
       background: var(--team-bg);
       backdrop-filter: blur(10px);
-      flex-direction: row;
+      border-radius: 0 0 20px 20px;
     }
 
     .fusion-slot {
-      width: 90px;
+      width: 80px;
       text-align: center;
-      background: linear-gradient(135deg, #2b2b2b, #1a1a1a);
-      border-radius: 15px;
-      padding: 0.5rem;
-      transition: transform 0.2s;
-      animation: slideIn 0.4s ease;
-    }
-
-    .fusion-slot:hover {
-      transform: scale(1.05);
-      background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
     }
 
     .fusion-slot input {
       width: 60px;
       margin: 4px auto;
-      padding: 5px;
+      padding: 6px;
       font-size: 0.75rem;
       border-radius: 8px;
       border: 1px solid var(--input-border);
@@ -150,7 +155,8 @@
       object-fit: cover;
       image-rendering: pixelated;
       background: radial-gradient(circle, #2a2a2a, #000);
-      transition: transform 0.3s;
+      border: 2px solid transparent;
+      box-shadow: 0 0 10px transparent;
     }
 
     .fusion-slot .name {
@@ -160,17 +166,19 @@
     }
 
     .fusion-viewer {
-      margin: 2rem auto;
+      margin: 2rem auto 4rem;
       max-width: 900px;
-      background: var(--fusion-bg);
+      background-color: var(--fusion-bg);
+      backdrop-filter: blur(20px);
       padding: 2rem;
-      border-radius: 20px;
+      border-radius: 30px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
       text-align: center;
-      animation: fadeIn 0.5s ease;
     }
 
     .fusion-viewer button {
       padding: 0.75rem 1.5rem;
+      margin-top: 1rem;
       font-size: 1rem;
       border: none;
       border-radius: 999px;
@@ -178,21 +186,11 @@
       color: white;
       cursor: pointer;
       box-shadow: 0 0 10px var(--button-glow);
-      transition: transform 0.3s;
+      transition: all 0.3s ease-in-out;
     }
 
     .fusion-viewer button:hover {
       transform: scale(1.05);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-10px); }
-      to { opacity: 1; transform: translateX(0); }
     }
   </style>
 </head>
@@ -200,21 +198,155 @@
   <header>
     <h1>Pokémon Duo Viewer</h1>
     <p>Zwei Streams nebeneinander – perfekt für gemeinsame Runs</p>
-    <button class="toggle-button" onclick="toggleTheme()">🌗 Theme</button>
+    <button class="toggle-button" onclick="toggleTheme()">🌗 Theme wechseln</button>
   </header>
+
   <section class="streams">
     <div class="stream">
-      <iframe src="https://vdo.ninja/?view=9PQWsRa&solo&room=TbsxVooke69"></iframe>
-      <div class="team" id="team1">
-        <!-- Hier erscheinen die Pokémon-Slots von Team 1 -->
-      </div>
+      <iframe src="https://vdo.ninja/?view=NHeFCZz&solo&room=TbsxVooke69"></iframe>
+      <div class="team" id="team1"></div>
     </div>
     <div class="stream">
       <iframe src="https://vdo.ninja/?view=PLAYER2_ID"></iframe>
-      <div class="team" id="team2">
-        <!-- Hier erscheinen die Pokémon-Slots von Team 2 -->
-      </div>
+      <div class="team" id="team2"></div>
     </div>
   </section>
+
+  <section class="fusion-viewer">
+    <h2>Fusion Viewer</h2>
+    <div class="autocomplete-wrapper">
+      <input type="text" id="name1" placeholder="Pokémon 1" autocomplete="off" />
+      <div class="autocomplete-list" id="list1"></div>
+    </div>
+    <div class="autocomplete-wrapper">
+      <input type="text" id="name2" placeholder="Pokémon 2" autocomplete="off" />
+      <div class="autocomplete-list" id="list2"></div>
+    </div>
+    <br>
+    <button onclick="showNamedFusion()">Fusion anzeigen 🔍</button>
+  </section>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+
+    function showNamedFusion() {
+      const name1 = document.getElementById("name1").value.trim().toLowerCase();
+      const name2 = document.getElementById("name2").value.trim().toLowerCase();
+      const id1 = nameToId[name1];
+      const id2 = nameToId[name2];
+      if (!id1 || !id2) return alert("Namen nicht erkannt");
+      const dexUrl = `https://infinitefusiondex.com/details/${id1}.${id2}`;
+      window.open(dexUrl, '_blank');
+    }
+
+    function setupAutocomplete(input, listId) {
+      const list = document.getElementById(listId);
+      input.addEventListener('input', () => {
+        const value = input.value.toLowerCase();
+        list.innerHTML = '';
+        if (!value || value.length < 1) return;
+        const matches = Object.values(englishNames).filter(name => name.toLowerCase().includes(value)).slice(0, 10);
+        matches.forEach(name => {
+          const item = document.createElement('div');
+          item.textContent = name;
+          item.onclick = () => {
+            input.value = name;
+            list.innerHTML = '';
+            input.dispatchEvent(new Event('input'));
+          };
+          list.appendChild(item);
+        });
+      });
+      document.addEventListener('click', (e) => {
+        if (!list.contains(e.target) && e.target !== input) {
+          list.innerHTML = '';
+        }
+      });
+    }
+
+    function createFusionSlot(teamIndex) {
+      const slot = document.createElement('div');
+      slot.className = 'fusion-slot';
+
+      const name1 = document.createElement('input');
+      const name2 = document.createElement('input');
+      name1.type = 'text'; name2.type = 'text';
+      name1.placeholder = 'Name1'; name2.placeholder = 'Name2';
+      name1.autocomplete = 'off'; name2.autocomplete = 'off';
+
+      const img = document.createElement('img');
+      const name = document.createElement('div');
+      name.className = 'name';
+
+      const placeholderImg = "https://upload.wikimedia.org/wikipedia/commons/5/53/Poké_Ball_icon.svg";
+
+      const updateImage = () => {
+        const id1 = nameToId[name1.value.toLowerCase()];
+        const id2 = nameToId[name2.value.toLowerCase()];
+        if (id1 && id2) {
+          const customUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/custom/${id1}.${id2}.png`;
+          const fallbackUrl = `https://ifd-spaces.sfo2.cdn.digitaloceanspaces.com/sprites/generated/${id1}.${id2}.png`;
+          img.onerror = () => {
+            img.onerror = null;
+            img.src = fallbackUrl;
+          };
+          img.src = customUrl;
+          name.textContent = `#${id1}/#${id2}`;
+        } else {
+          img.src = placeholderImg;
+          name.textContent = '-';
+        }
+      };
+
+      name1.addEventListener('input', updateImage);
+      name2.addEventListener('input', updateImage);
+
+      // Färbe Rahmen je nach Team
+      const borderColor = teamIndex === 0 ? '#ff6b6b' : '#4cafff';
+      img.style.border = `2px solid ${borderColor}`;
+      img.style.boxShadow = `0 0 10px ${borderColor}`;
+
+      slot.appendChild(name1);
+      slot.appendChild(name2);
+      slot.appendChild(img);
+      slot.appendChild(name);
+
+      const listId1 = 'list_' + Math.random().toString(36).substring(2);
+      const listId2 = 'list_' + Math.random().toString(36).substring(2);
+      const list1 = document.createElement('div');
+      const list2 = document.createElement('div');
+      list1.id = listId1; list2.id = listId2;
+      list1.className = 'autocomplete-list';
+      list2.className = 'autocomplete-list';
+      slot.appendChild(list1);
+      slot.appendChild(list2);
+      setupAutocomplete(name1, listId1);
+      setupAutocomplete(name2, listId2);
+
+      // Setze zuerst Pokéball
+      img.src = placeholderImg;
+
+      return slot;
+    }
+
+    function renderTeams() {
+      const teams = [document.getElementById('team1'), document.getElementById('team2')];
+      teams.forEach((el, i) => {
+        el.innerHTML = '';
+        for (let j = 0; j < 6; j++) {
+          const slot = createFusionSlot(i);
+          el.appendChild(slot);
+        }
+      });
+    }
+
+    renderTeams();
+    setupAutocomplete(document.getElementById('name1'), 'list1');
+    setupAutocomplete(document.getElementById('name2'), 'list2');
+  </script>
 </body>
 </html>
